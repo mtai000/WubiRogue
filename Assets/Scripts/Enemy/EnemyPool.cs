@@ -14,16 +14,14 @@ public class EnemyPool : BasePool<EnemyBase>
     {
         var e = base.OnCreatePoolItem();
         e.SetDeactivateAction(delegate { Release(e); });
-
         return e;
     }
 
     protected override void OnGetPoolItem(EnemyBase obj)
     {
         base.OnGetPoolItem(obj);
-        obj.transform.position = Utils.RandomOutscreenPosition() + new Vector3(15,0,0);
-        obj.AssignTexts();
-        obj.moveSpeed = Random.Range(3f,6f);
+        obj.transform.position = Utils.RandomOutscreenPosition();
+        obj.init();
     }
 
     public void SetPrefab(EnemyBase prefab)
