@@ -50,12 +50,12 @@ public class EnemySpawnerPool : MonoBehaviour
 
     void Spawn()
     {
-        for (int i = 0; i < spawnAmount && EnemyTree.enemyNumber < maxNumber; i++)
+        for (int i = 0; i < spawnAmount && WubiTree.enemyNumber < maxNumber; i++)
         {
             var randomIndex = Random.Range(0, enemyPrefabs.Length);
             var pool = pools[randomIndex];
             pool.Get();
-            EnemyTree.incEnemy();
+            WubiTree.incEnemy();
         }
     }
 

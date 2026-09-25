@@ -58,7 +58,9 @@ Shader "Custom/PlayerHealth"
 
                 if (len > innerRadius && len < outerRadius)
                 {
-                    float angle = atan2(uv.y - _Center.y, uv.x - _Center.x) / (2.0 * 3.14159) + 0.5;
+                    //float angle = atan2(uv.y - _Center.y, uv.x - _Center.x) / (2.0 * 3.14159) + 0.5;
+                    float angle = -atan2(uv.y - _Center.y, uv.x - _Center.x)/(2.0 * 3.14159) + 0.5;
+                  
                     if (angle <= _HealthPercentage)
                         return _MainColor; 
                 }

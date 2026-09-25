@@ -12,72 +12,22 @@ class Shot : MonoBehaviour
     [SerializeField] private TextMesh textMesh;
     [SerializeField] private TextMesh codeMesh;
     [SerializeField] private GameObject selectBoxGroup;
-    [SerializeField] TextAsset codeAsset;
     [SerializeField] private TextMesh nextPage;
     [SerializeField] private TextMesh prevPage;
     [SerializeField] private TextMesh curPage;
-    [SerializeField] private GameObject spawnObj;
+    [SerializeField] private GameObject enemyPool;
+    [SerializeField] private GameObject bulletPool;
     TextMesh[] textMeshes;
     int page = 0;
     int idx = 0;
     bool b_ready_write = false;
     Dictionary<string, List<string>> keyValuePairs = new Dictionary<string, List<string>>();
     string prev_str = "";
-    WubiTreeNode wubiTreeRoot;
     private Color cus_gray = Color.white * 0.2f;
     List<string> matchesInput = new List<string>();
-    private void LoadAsset()
-    {
-        string[] lines = codeAsset.text.Split('\n').Select(x => x.Trim()).ToArray();
-        foreach (string line in lines)
-        {
-            var pairs = line.Split(',');
-            if (keyValuePairs.ContainsKey(pairs[0]))
-                keyValuePairs[pairs[0]].Add(pairs[1].Trim());
-            else
-            {
-                keyValuePairs[pairs[0]] = new List<string> { pairs[1].Trim() };
-            }
-        }
-    }
-
-    private void LoadAssetToTree()
-    {
-        WubiTreeNode root = new WubiTreeNode(new List<string> { });
-        if (codeAsset == null)
-        {
-            Debug.LogError("CSV file not assigned.");
-            return;
-        }
-
-        string[] lines = codeAsset.text.Split('\n');
-        foreach (string line in lines)
-        {
-            string[] fields = line.TrimEnd().Split(',');
-            if (fields.Length != 2)
-            {
-                continue;
-            }
-            WubiTreeNode cur = root;
-            foreach (char c in fields[0])
-            {
-                if (!cur.Children.ContainsKey(c))
-                {
-                    WubiTreeNode child = new WubiTreeNode(new List<string> { });
-                    cur.AddChild(c, child);
-                }
-                cur = cur.Children[c];
-
-            }
-            cur.Data.Add(fields[1] + "(" + fields[0] + ")");
-        }
-        wubiTreeRoot = root;
-    }
 
     private void Awake()
     {
-        //LoadAsset();
-        LoadAssetToTree();
         textMeshes = selectBoxGroup.GetComponentsInChildren<TextMesh>();
 
         foreach (TextMesh t in textMeshes)
@@ -119,6 +69,7 @@ class Shot : MonoBehaviour
             {
                 if (codeMesh.text.Length >= 4)
                 {
+                    b_ready_write = true;
                     WriteToTextBox();
                     codeMesh.text = "";
                 }
@@ -127,7 +78,7 @@ class Shot : MonoBehaviour
             }
             else if (key - '0' <= textMeshes.Count() && key >= '1')
             {
-                if (page * textMeshes.Count() + key - '0' < GetMatchNumber())
+                if (page * textMeshes.Count() + key - '0' - 1 < matchesInput.Count)
                 {
                     idx = key - '0' - 1;
                     //write to text box
@@ -135,7 +86,7 @@ class Shot : MonoBehaviour
                 }
             }
         }
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
         {
             b_ready_write = true;
             //write to text box
@@ -248,7 +199,7 @@ class Shot : MonoBehaviour
             matchesInput.Clear();
             return;
         }
-        var cur = wubiTreeRoot;
+        var cur = WubiTree.wubiTreeRoot;
         foreach (var c in codeMesh.text)
         {
             if (!cur.Children.ContainsKey(c))
@@ -261,9 +212,11 @@ class Shot : MonoBehaviour
         matchesInput = cur.GetCurAndChildData().ToList();
     }
 
-    void ShotMainBullet()
+    void ShotMainBullet(Vector3 pos)
     {
         // shot main bullet
+        bulletPool.SendMessage("spawnMainBullet",pos);
+        bulletPool.SendMessage("spawnTeslaBullet", pos);
     }
     void WriteToTextBox()
     {
@@ -271,13 +224,14 @@ class Shot : MonoBehaviour
         if (page * textMeshes.Count() + idx < matchesInput.Count)
             textMesh.text += matchesInput[page * textMeshes.Count() + idx].Split('(')[0];
         b_ready_write = false;
-        var matchesObj = Utils.FindGameObjectsWithName(spawnObj, textMesh.text);
+        var matchesObj = Utils.FindGameObjectsWithName(enemyPool, textMesh.text);
         
         if (matchesObj.Count > 0)
         {
             if (matchesObj.Count == 1 && matchesObj[0].name.Equals(textMesh.text))
             {
-                ShotMainBullet();
+                ShotMainBullet(matchesObj[0].transform.position);
+                matchesObj[0].GetComponent<EnemyBase>().AssignTexts();
                 textMesh.text = string.Empty;
             }
         }

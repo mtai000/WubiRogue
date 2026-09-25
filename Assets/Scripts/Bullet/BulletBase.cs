@@ -4,29 +4,16 @@ using UnityEngine;
 
 public class BulletBase : MonoBehaviour
 {
-    [SerializeField] public float moveSpeed = 10f;
-
-    System.Action<BulletBase> deactivateAction;
-    float deactivateTimer;
+    public float dmg = 2f;
+    public System.Action<BulletBase> deactivateAction;
     // Start is called before the first frame update
-    void Start()
+    public virtual void Update()
     {
-        
     }
 
-    // Update is called once per frame
-    void Update()
+    public virtual void OnCollisionEnter2D(Collision2D collision)
     {
-      
-    }
-
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            deactivateAction.Invoke(this);
-        }
+       
     }
 
     public void SetDeactivateAction(System.Action<BulletBase> deactivateAction)
